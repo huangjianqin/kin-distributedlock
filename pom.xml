@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.kin</groupId>
-    <artifactId>kin-distributelock</artifactId>
+    <artifactId>kin-distributedlock</artifactId>
     <packaging>pom</packaging>
     <version>${revision}</version>
     <modules>
-        <module>kin-distributelock-api</module>
-        <module>kin-distributelock-redis</module>
-        <module>kin-distributelock-zookeeper</module>
+        <module>kin-distributedlock-api</module>
+        <module>kin-distributedlock-redis</module>
+        <module>kin-distributedlock-zookeeper</module>
     </modules>
 
     <properties>
@@ -28,7 +28,7 @@
         <dependencies>
             <dependency>
                 <groupId>org.kin</groupId>
-                <artifactId>kin-distributelock-dependencies</artifactId>
+                <artifactId>kin-distributedlock-dependencies</artifactId>
                 <version>${project.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
