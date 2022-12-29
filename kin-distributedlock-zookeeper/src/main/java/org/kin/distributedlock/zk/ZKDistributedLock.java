@@ -12,14 +12,16 @@ import org.kin.distributedlock.AbstractDistributedLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * 基于zk实现分布式超时锁, 并支持进程故障会自动释放分布式锁(自身特性提供)
  * Created by 健勤 on 2017/5/27.
  */
 public class ZKDistributedLock extends AbstractDistributedLock {
     private static final Logger log = LoggerFactory.getLogger(ZKDistributedLock.class);
-    /** zk客户端 会话超时时间, 1分钟 */
-    private static final int SESSION_TIMEOUT = 60;
+    /** zk客户端 会话超时时间, 5分钟, 减少网络波动(session断开)对临时节点移除的影响 */
+    private static final int SESSION_TIMEOUT = (int) TimeUnit.MINUTES.toMillis(5);
     /** 锁节点的父节点路径名 */
     private static final String ZK_DL_PARENT = "kin-distributedlock";
     /** zk客户端 */
