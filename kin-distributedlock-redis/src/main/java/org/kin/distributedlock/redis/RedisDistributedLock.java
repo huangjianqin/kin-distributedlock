@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory;
  */
 public class RedisDistributedLock extends AbstractDistributedLock {
     private static final Logger log = LoggerFactory.getLogger(RedisDistributedLock.class);
+    /** 分布式锁redis key */
+    private static final String DISTRIBUTED_LOCK_KEY = "kin:distributedlock:";
+
     /** redis set成功返回值 */
     private static final String REDIS_SET_REPLY = "OK";
 
@@ -27,9 +30,17 @@ public class RedisDistributedLock extends AbstractDistributedLock {
         this.redisCommands = connection.sync();
     }
 
+    /**
+     * @return  获取分布式锁redis key
+     */
+    private static String distributedLockKey(String name){
+        return DISTRIBUTED_LOCK_KEY + name;
+    }
+
     @Override
     protected boolean lock0(String name, long expireTime, long sleepTime) {
         long start = System.currentTimeMillis();
+        String key = distributedLockKey(name);
         while (true) {
             //自旋一直尝试获得分布式锁
             long now = System.currentTimeMillis();
@@ -40,9 +51,9 @@ public class RedisDistributedLock extends AbstractDistributedLock {
             Thread currentThread = Thread.currentThread();
 
             //setnxpx
-            if (REDIS_SET_REPLY.equalsIgnoreCase(redisCommands.set(name, now + "," + expireTime, new SetArgs().px(expireTime).nx()))) {
+            if (REDIS_SET_REPLY.equalsIgnoreCase(redisCommands.set(key, now + "," + expireTime, new SetArgs().px(expireTime).nx()))) {
                 log.debug(currentThread.getName() + String.format(" get distributed lock '%s'", name));
-                onLock(name);
+                onLock(key);
                 return true;
             }
 
@@ -60,8 +71,8 @@ public class RedisDistributedLock extends AbstractDistributedLock {
     @Override
     protected void unlock0(String name) {
         log.debug(Thread.currentThread().getName() + String.format(" release distributed lock '%s'", name));
-
-        redisCommands.del(name);
+        String key = distributedLockKey(name);
+        redisCommands.del(key);
     }
 
     /**
