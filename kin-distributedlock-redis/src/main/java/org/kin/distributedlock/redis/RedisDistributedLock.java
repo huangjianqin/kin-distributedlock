@@ -53,7 +53,7 @@ public class RedisDistributedLock extends AbstractDistributedLock {
             //setnxpx
             if (REDIS_SET_REPLY.equalsIgnoreCase(redisCommands.set(key, now + "," + expireTime, new SetArgs().px(expireTime).nx()))) {
                 log.debug(currentThread.getName() + String.format(" get distributed lock '%s'", name));
-                onLock(key);
+                onLock(name);
                 return true;
             }
 

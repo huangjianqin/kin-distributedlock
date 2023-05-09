@@ -1,13 +1,15 @@
 package org.kin.distributedlock;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * Created by 健勤 on 2017/5/25.
  */
 public interface DistributedLock {
     /** 当前线程已获取的分布式锁名 */
-    ThreadLocal<LinkedList<String>> OWNED_LOCK = ThreadLocal.withInitial(LinkedList::new);
+    ThreadLocal<Map<String, Integer>> OWNED_LOCK = ThreadLocal.withInitial(HashMap::new);
 
     /**
      * 尝试获取分布式锁
@@ -33,12 +35,6 @@ public interface DistributedLock {
      * @param name  分布式锁名
      */
     void unlock(String name);
-
-    /**
-     * 安全释放分布式锁, 会判断当前线程是获得分布式锁线程
-     * @param name  分布式锁名
-     */
-    void unlockSafely(String name);
 
     /**
      * 销毁, 释放资源

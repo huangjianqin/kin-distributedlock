@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by 健勤 on 2017/5/25.
@@ -18,7 +19,7 @@ public class RedisDistributedLockTest {
     /** 测试分布式锁名 */
     private static final String LOCK_NAME = "self-increment";
     /** 自增循环次数 */
-    private static final int LOOP = 10;
+    private static final int LOOP = 100;
     /** 统计counter */
     private static volatile Long counter = 0L;
 
@@ -44,14 +45,13 @@ public class RedisDistributedLockTest {
         System.out.println("starting...");
         while (latch.getCount() > 0) {
             System.out.println("当前Counter = " + counter);
-            Thread.sleep(20000);
+            Thread.sleep(ThreadLocalRandom.current().nextInt(20_000));
         }
         latch.await();
         System.out.println("self increment end!");
         System.out.println(counter);
         System.out.println(counter == parallel * LOOP);
         executor.shutdown();
-        lock.unlock(LOCK_NAME);
         lock.destroy();
     }
 
@@ -66,16 +66,27 @@ public class RedisDistributedLockTest {
         public void run() {
             Random random = new Random();
             for (int i = 0; i < LOOP; i++) {
-                while(!lock.lock(LOCK_NAME, 200)){
+                while(!lock.lock(LOCK_NAME, 30_000, 100)){
 
                 }
-                counter++;
                 try {
-                    Thread.sleep(random.nextInt(500));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    //可重入锁测试
+                    while(!lock.lock(LOCK_NAME, 30_000, 100)){
+
+                    }
+                    try {
+                        counter++;
+                        try {
+                            Thread.sleep(random.nextInt(200));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }finally {
+                        lock.unlock(LOCK_NAME);
+                    }
+                }finally {
+                    lock.unlock(LOCK_NAME);
                 }
-                lock.unlock(LOCK_NAME);
             }
             latch.countDown();
         }
